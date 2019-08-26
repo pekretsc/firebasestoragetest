@@ -2,10 +2,11 @@ import 'dart:io';
 import 'dart:math';
 import 'package:image/image.dart' as IMG;
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart' ;
+import 'package:image_picker/image_picker.dart';
 import 'dart:io' as IO;
-import 'package:path_provider/path_provider.dart'as Paths;
+import 'package:path_provider/path_provider.dart' as Paths;
 import 'package:path/path.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class HomePage extends StatefulWidget {
   double scrollpos = 0;
@@ -102,27 +103,31 @@ class _HomePageState extends State<HomePage> {
             children: <Widget>[
               RaisedButton(
                   child: Text('AddPic'),
-                  onPressed: () async{
-                   IO.File picFile = await ImagePicker.pickImage(source: ImageSource.gallery).then((value){
-                     print(value.path);
+                  onPressed: () async {
+                    IO.File picFile =
+                        await ImagePicker.pickImage(source: ImageSource.gallery)
+                            .then((value) {
+                      print(value.path);
 
-                     return value;
-                   });
-                   IMG.Image image = IMG.decodeImage(picFile.readAsBytesSync());
-                   IMG.Image resized =IMG.copyResize(image,height:700,interpolation: IMG.Interpolation.linear );
-                   IO.File file = await saveResizedPicToJpg(picFile:resized,name: 'testPic',extension: '.jpg');
+                      return value;
+                    });
 
-
-
-                   widget.images.add(Container(
-                       key: ValueKey(ValueKey(widget.images.length+2)),
-                       height: 175,
-                       width: double.infinity,
-                       child: Image.file(file,fit: BoxFit.cover,)
-                   ),);
-                   widget.picChangeValues.add(300);
-
-
+                    IMG.Image image =
+                        IMG.decodeImage(picFile.readAsBytesSync());
+                    IMG.Image resized = IMG.copyResize(image,
+                        height: 700, interpolation: IMG.Interpolation.linear);
+                    IO.File file = await download(path: '');
+                    widget.images.add(
+                      Container(
+                          key: ValueKey(ValueKey(widget.images.length + 2)),
+                          height: 175,
+                          width: double.infinity,
+                          child: Image.file(
+                            file,
+                            fit: BoxFit.cover,
+                          )),
+                    );
+                    widget.picChangeValues.add(300);
                   }),
               RaisedButton(child: Text('save to internal'), onPressed: () {}),
               RaisedButton(child: Text('Upload'), onPressed: () {}),
@@ -143,34 +148,50 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  Future<IO.File> saveResizedPicToJpg({IMG.Image picFile, String name,String extension})async{
+
+  Future<IO.File> saveResizedPicToJpg(
+      {IMG.Image picFile, String name, String extension}) async {
     Directory appDocDir = await Paths.getExternalStorageDirectory();
-    File file = new File(
-        join('${appDocDir.path}/Pictures/','$name$extension')
-    );
-    try{
+    File file =
+        new File(join('${appDocDir.path}/Pictures/', '$name$extension'));
+    try {
       file.writeAsBytesSync(IMG.encodeJpg(picFile));
       return file;
-    }catch(e)
-    {
+    } catch (e) {
       print(e.toString());
       return null;
     }
   }
-  
 
-  Future<IO.File> saveFileToJpg({IO.File picFile, String name,String extention})async{
+  Future<IO.File> saveFileToJpg(
+      {IO.File picFile, String name, String extention}) async {
     Directory appDocDir = await Paths.getExternalStorageDirectory();
-    File file = new File(
-        join('${appDocDir.path}/Pictures/',name,extention)
-    );
-    try{
+    File file = new File(join('${appDocDir.path}/Pictures/', name, extention));
+    try {
       file.writeAsBytesSync(picFile.readAsBytesSync());
       return file;
-    }catch(e)
-    {
+    } catch (e) {
       print(e.toString());
       return null;
     }
+  }
+
+  Future<String> uploadImg(
+      {File file, String reference, String filename, String extention}) async {
+    final StorageReference storageReference =
+        FirebaseStorage().ref().child('$reference/$filename$extention');
+
+    final StorageUploadTask uploadTask = storageReference.putFile(file);
+    return storageReference.path;
+  }
+
+  Future<File> download({String path}) async {
+    String shortPath = 'Pictures/neuesPic3.jpg';
+    StorageReference storageRef = FirebaseStorage().ref().child(shortPath);
+    Directory appDocDir = await Paths.getExternalStorageDirectory();
+    File tempImg = File(join('${appDocDir.path}', shortPath));
+
+    storageRef.writeToFile(tempImg);
+    return tempImg;
   }
 }
