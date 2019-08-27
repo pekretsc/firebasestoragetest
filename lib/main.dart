@@ -1,4 +1,5 @@
-import 'package:firebasestoragetest/HomePage.dart';
+
+import 'package:firebasestoragetest/PicturePage.dart';
 
 import 'package:flutter/material.dart';
 
@@ -16,6 +17,6 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return MaterialApp(home: SafeArea(child: HomePage()));
+    return MaterialApp(home: SafeArea(child: PicturePage()));
   }
 }
