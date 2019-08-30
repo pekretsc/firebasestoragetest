@@ -1,7 +1,7 @@
 import 'package:meta/meta.dart';
 
-abstract class Event{}
-class BlocEvent extends Event{
+abstract class PictureEvent{}
+class BlocEvent extends PictureEvent{
   String data;
   BlocEvent({@required this.data});
 }

@@ -1,17 +1,21 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 class PictureUpload extends StatefulWidget {
   BorderRadius radius;
   double heigt;
   double width;
-  Image img;
-  Future onTab;
-  Future onHold;
-  PictureUpload({@required this.radius,@required this.img,@required this.onTab,@required this.onHold,this.width,this.heigt});
+  Widget defaultImage;
+  Function onTab;
+  Function onLongPress;
+  Function onDoubleTab;
+  Decoration decoration;
+  PictureUpload({@required this.radius,@required this.defaultImage,@required this.onTab,this.onLongPress,this.onDoubleTab,this.width,this.heigt,this.decoration});
   @override
-  PictureUpload_State createState() => PictureUpload_State();
+  PictureUploadState createState() {
+    return PictureUploadState();
+  }
 }
-
-class PictureUpload_State extends State<PictureUpload> {
+class PictureUploadState extends State<PictureUpload> {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -20,21 +24,26 @@ class PictureUpload_State extends State<PictureUpload> {
           borderRadius: widget.radius,
           child: Container(
 
+
             height: widget.heigt,
             width: widget.width,
             child: Stack(
               fit: StackFit.expand,
               children: <Widget>[
 
-                widget.img,
+                widget.defaultImage,
                 Material(
                   color: Colors.transparent,
                   child: InkWell(
+
                     child: Container(
+                      decoration:  widget.decoration,
                       height: widget.heigt,
                       width: widget.width,
                     ),
-                    onTap: (){},
+                    onTap: widget.onTab,
+                    onLongPress: widget.onLongPress,
+                    onDoubleTap: widget.onDoubleTab,
                   ),
                 ),
 
