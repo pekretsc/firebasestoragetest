@@ -12,7 +12,7 @@ import 'package:firebasestoragetest/Event.dart';
 class PictureBloc {
   PictureBlocState pictureBlocState = PictureBlocState();
   String latestError = '';
-  String displayMessage='';
+  String displayMessage = '';
 
   final _StateController = BehaviorSubject<PictureBlocState>();
 
@@ -36,59 +36,81 @@ class PictureBloc {
   void refresh(BlocUIState state) async {
     pictureBlocState.state = state;
     _inBlockResource.add(pictureBlocState);
+    print(pictureBlocState.state);
   }
 
   void _mapEventToState(PictureEvent event) async {
+    if (event is TestEvent) {
+      refresh(BlocUIState.Waiting);
+      Future.delayed(Duration(seconds: 5));
+      refresh(BlocUIState.Fin);
+    }
+
     if (event is PictureSelectEvent) {
       refresh(BlocUIState.Waiting);
-      String result = await pictureBlocState.selected(picFile: event.pictureFile);
-      if (result == '') {
-        refresh(BlocUIState.Fin);
-        displayMessage = 'Bild wurde geladen!!';
-      } else {
-        refresh(BlocUIState.Fail);
-        latestError = result;
-        displayMessage = 'Es ist ein fehler aufgetreten';
-      }
+      String result = await pictureBlocState
+          .selected(picFile: event.pictureFile)
+          .then((value) {
+        if (value == '') {
+          refresh(BlocUIState.Fin);
+          displayMessage = 'Bild wurde geladen!!';
+        } else {
+          refresh(BlocUIState.Fail);
+          latestError = value;
+          displayMessage = 'Es ist ein fehler aufgetreten';
+        }
+        return value;
+      });
     }
 
     if (event is PictureUploadEvent) {
       refresh(BlocUIState.Waiting);
-      String result = await pictureBlocState.upLoad(index: event.picturFilesIndex);
-      if (result == '') {
-        refresh(BlocUIState.Fin);
-        displayMessage = 'Bild wurde geladen!!';
-      } else {
-        refresh(BlocUIState.Fail);
-        latestError = result;
-        displayMessage = 'Es ist ein fehler aufgetreten';
-      }
+      String result = await pictureBlocState
+          .upLoad(index: event.picturFilesIndex)
+          .then((value) {
+        if (value == '') {
+          refresh(BlocUIState.Fin);
+          displayMessage = 'Bild wurde geladen!!';
+        } else {
+          refresh(BlocUIState.Fail);
+          latestError = value;
+          displayMessage = 'Es ist ein fehler aufgetreten';
+        }
+        return value;
+      });
     }
 
     if (event is PictureResizeEvent) {
       refresh(BlocUIState.Waiting);
-      String result = await pictureBlocState.resize(index: event.picturFilesIndex);
-      if (result == '') {
-        refresh(BlocUIState.Fin);
-        displayMessage = 'Bild wurde geladen!!';
-      } else {
-        refresh(BlocUIState.Fail);
-        latestError = result;
-        displayMessage = 'Es ist ein fehler aufgetreten';
-      }
+      String result = await pictureBlocState
+          .resize(index: event.picturFilesIndex)
+          .then((value) {
+        if (value == '') {
+          refresh(BlocUIState.Fin);
+          displayMessage = 'Bild wurde geladen!!';
+        } else {
+          refresh(BlocUIState.Fail);
+          latestError = value;
+          displayMessage = 'Es ist ein fehler aufgetreten';
+        }
+        return value;
+      });
     }
 
     if (event is PictureDownLoadEvent) {
       refresh(BlocUIState.Waiting);
-      String result = await pictureBlocState.download(path: event.path);
-      if (result == '') {
-        refresh(BlocUIState.Fin);
-        displayMessage = 'Bild wurde geladen!!';
-      } else {
-        refresh(BlocUIState.Fail);
-        latestError = result;
-        displayMessage = 'Es ist ein fehler aufgetreten';
-      }
+      String result =
+          await pictureBlocState.download(path: event.path).then((value) {
+        if (value == '') {
+          refresh(BlocUIState.Fin);
+          displayMessage = 'Bild wurde geladen!!';
+        } else {
+          refresh(BlocUIState.Fail);
+          latestError = value;
+          displayMessage = 'Es ist ein fehler aufgetreten';
+        }
+        return value;
+      });
     }
   }
 
@@ -104,7 +126,7 @@ class PictureBlocState {
   List<File> rezisedPicFiles = [];
   List<File> downloadedPicFiles = [];
   List<String> downloadPaths = [];
- /*
+  /*
  Future<String> doSomeThing({String eventData}) async {
     String returnValue = null;
     try {
@@ -119,12 +141,10 @@ class PictureBlocState {
   Future<String> selected({File picFile}) async {
     String returnValue = '';
     try {
-      if(picFile.path.contains('.jpg')||picFile.path.contains('.png')){
+      if (picFile.path.contains('.jpg') || picFile.path.contains('.png')) {
         picFiles.add(picFile);
       }
-    }
-    catch (e)
-    {
+    } catch (e) {
       picFiles.add(null);
       returnValue = e.toString();
     }
@@ -134,7 +154,11 @@ class PictureBlocState {
   Future<String> upLoad({int index}) async {
     String returnValue = '';
     try {
-      String storagePath =await uploadImg(file: rezisedPicFiles[index],extention: '.jpg',filename: getSavableDateString(DateTime.now()),reference: 'Pictures');
+      String storagePath = await uploadImg(
+          file: rezisedPicFiles[index],
+          extention: '.jpg',
+          filename: getSavableDateString(DateTime.now()),
+          reference: 'Pictures');
       downloadPaths.add(storagePath);
     } catch (e) {
       returnValue = e.toString();
@@ -146,12 +170,13 @@ class PictureBlocState {
   Future<String> resize({int index}) async {
     String returnValue = '';
     try {
-
-   IMG.Image image =
-      IMG.decodeImage(picFiles[index].readAsBytesSync());
+      IMG.Image image = IMG.decodeImage(picFiles[index].readAsBytesSync());
       IMG.Image resized = IMG.copyResize(image,
           height: 700, interpolation: IMG.Interpolation.linear);
-      File resizedPic = await saveResizedPicToJpg(picFile: resized,name: getSavableDateString(DateTime.now()),extension: '.jpg');
+      File resizedPic = await saveResizedPicToJpg(
+          picFile: resized,
+          name: getSavableDateString(DateTime.now()),
+          extension: '.jpg');
       rezisedPicFiles.add(resizedPic);
     } catch (e) {
       returnValue = e.toString();
@@ -176,7 +201,7 @@ class PictureBlocState {
       {IMG.Image picFile, String name, String extension}) async {
     Directory appDocDir = await Paths.getExternalStorageDirectory();
     File file =
-    new File(join('${appDocDir.path}/Pictures/', '$name$extension'));
+        new File(join('${appDocDir.path}/Pictures/', '$name$extension'));
     try {
       file.writeAsBytesSync(IMG.encodeJpg(picFile));
       return file;
@@ -185,6 +210,7 @@ class PictureBlocState {
       return null;
     }
   }
+
   String getSavableDateString(DateTime t) {
     String date = t.toIso8601String().split('T')[0];
     String returnString =
@@ -195,7 +221,7 @@ class PictureBlocState {
   Future<String> uploadImg(
       {File file, String reference, String filename, String extention}) async {
     final StorageReference storageReference =
-    FirebaseStorage().ref().child('$reference/$filename$extention');
+        FirebaseStorage().ref().child('$reference/$filename$extention');
 
     final StorageUploadTask uploadTask = storageReference.putFile(file);
     print(storageReference.path);
@@ -211,27 +237,54 @@ class PictureBlocState {
     storageRef.writeToFile(tempImg);
     return tempImg;
   }
+
+  File getLastResizeFile() {
+    if (rezisedPicFiles.isEmpty) {
+      return null;
+    } else {
+      return rezisedPicFiles.last;
+    }
+  }
+
+  File getLastFoundFile() {
+    if (picFiles.isEmpty) {
+      return null;
+    } else {
+      return picFiles.last;
+    }
+  }
+
+  File getLastDownloadedFile() {
+    if (downloadedPicFiles.isEmpty) {
+      return null;
+    } else {
+      return downloadedPicFiles.last;
+    }
+  }
 }
 
 enum BlocUIState { Waiting, Fin, Fail, NotDet }
-abstract class PictureEvent{}
 
-class PictureSelectEvent extends PictureEvent{
+abstract class PictureEvent {}
+
+class TestEvent extends PictureEvent {}
+
+class PictureSelectEvent extends PictureEvent {
   File pictureFile;
   PictureSelectEvent({@required this.pictureFile});
 }
 
-class PictureUploadEvent extends PictureEvent{
+class PictureUploadEvent extends PictureEvent {
   int picturFilesIndex;
   PictureUploadEvent({@required this.picturFilesIndex});
 }
 
-class PictureResizeEvent extends PictureEvent{
+class PictureResizeEvent extends PictureEvent {
   int picturFilesIndex;
   PictureResizeEvent({@required this.picturFilesIndex});
 }
 
-class PictureDownLoadEvent extends PictureEvent{
+class PictureDownLoadEvent extends PictureEvent {
   String path;
   PictureDownLoadEvent({@required this.path});
 }
