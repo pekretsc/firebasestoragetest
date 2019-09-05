@@ -51,22 +51,28 @@ class _PicturePageState extends State<PicturePage> {
             child: Icon(Icons.image,color: Colors.white,),
           );
 
+          Widget upload = Center(
+            child: Icon(Icons.image,color: Colors.white,),
+          );
+
 
           switch(snap.data.state) {
             case BlocUIState.NotDet: {
               // statements;
-              defaultImage = Center(
-                child: Icon(Icons.access_time,color: Colors.white,),
-              );
-              rezised = Center(
-                child: Icon(Icons.access_time,color: Colors.white,),
-              );
+              download = defaultImage;
+              upload = defaultImage;
+              rezised = defaultImage;
             }
             break;
 
             case BlocUIState.Waiting: {
               //statements;
-              defaultImage = Center(
+              download = Center(
+                child: CircularProgressIndicator(
+                  backgroundColor: Colors.white,
+                ),
+              );
+              upload = Center(
                 child: CircularProgressIndicator(
                   backgroundColor: Colors.white,
                 ),
@@ -79,7 +85,10 @@ class _PicturePageState extends State<PicturePage> {
             }
             break;
             case BlocUIState.Fail: {
-              defaultImage = Center(
+              download = Center(
+                child: Icon(Icons.error,color: Colors.white),
+              );
+              upload = Center(
                 child: Icon(Icons.error,color: Colors.white),
               );
               rezised = Center(
@@ -88,8 +97,20 @@ class _PicturePageState extends State<PicturePage> {
             }
             break;
             case BlocUIState.Fin: {
-              defaultImage = Image.file(snap.data.picFiles.last);
-              rezised = Image.file(snap.data.rezisedPicFiles.last);
+              if(snap.data.picFiles.isNotEmpty){
+                defaultImage = Image.file(snap.data.picFiles.last);
+              }
+
+              if(snap.data.rezisedPicFiles.isNotEmpty){
+                rezised = Image.file(snap.data.rezisedPicFiles.last);
+              }
+              if(snap.data.downloadedPicFiles.isNotEmpty){
+                upload = Image.file(snap.data.downloadedPicFiles.last);
+              }
+              if(snap.data.downloadedPicFiles.isNotEmpty){
+                download = Image.file(snap.data.downloadedPicFiles.last);
+              }
+
             }
             break;
           /*default: {
@@ -123,7 +144,7 @@ class _PicturePageState extends State<PicturePage> {
                     ),
                     Center(
                       child: RaisedButton(
-                        onPressed: (){},//(){pictureBloc.BlocEventSinc.add(PictureUploadEvent(picturFilesIndex: snap.data.picFiles.length-1));},
+                        onPressed: (){widget.pictureBloc.BlocEventSinc.add(PictureUploadEvent(picturFilesIndex: snap.data.rezisedPicFiles.length-1));},
                         child: Text('Upload Image'),
                       ),
                     ),
@@ -135,13 +156,19 @@ class _PicturePageState extends State<PicturePage> {
                     ),
                     Center(
                       child: RaisedButton(
-                        onPressed: (){widget.pictureBloc.BlocEventSinc.add(PictureResizeEvent(picturFilesIndex: snap.data.picFiles.length-1));},
+                        onPressed: (){widget.pictureBloc.BlocEventSinc.add(PictureDownLoadEvent(path: snap.data.downloadPaths.last));
+
+                        },
                         child: Text('Download Image'),
                       ),
                     ),
                     AnimatedSwitcher(
                       duration: const Duration(seconds: 1),
                       child: rezised,
+                    ),
+                    AnimatedSwitcher(
+                      duration: const Duration(seconds: 1),
+                      child: download,
                     ),
                     AnimatedSwitcher(
                       duration: const Duration(seconds: 1),
