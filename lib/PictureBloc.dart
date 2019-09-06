@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:async' as prefix0;
 import 'dart:io';
 import 'package:image/image.dart' as IMG;
 import 'package:flutter/cupertino.dart';
@@ -42,10 +43,39 @@ class PictureBloc {
   void _mapEventToState(PictureEvent event) async {
     if (event is TestEvent) {
       refresh(BlocUIState.Waiting);
-      Future.delayed(Duration(seconds: 5));
-      refresh(BlocUIState.Fin);
+      await Future.delayed(Duration(seconds: 2)).then((_){
+        refresh(BlocUIState.Fin);
+      });
+
     }
 
+    if (event is TestEvent2) {
+      refresh(BlocUIState.Waiting);
+      pictureBlocState.testFuture()
+          .then((value){
+            refresh(BlocUIState.Fin);
+            print(value);
+          });
+
+    }
+
+
+    if (event is PictureResizeEvent) {
+      refresh(BlocUIState.Waiting);
+      await pictureBlocState
+          .resize(index: event.picturFilesIndex)
+          .then((value) {
+        if (value == '') {
+          refresh(BlocUIState.Fin);
+          displayMessage = 'Bild wurde geladen!!';
+        } else {
+          refresh(BlocUIState.Fail);
+          latestError = value;
+          displayMessage = 'Es ist ein fehler aufgetreten';
+        }
+        return value;
+      });
+    }
     if (event is PictureSelectEvent) {
       refresh(BlocUIState.Waiting);
       String result = await pictureBlocState
@@ -65,7 +95,7 @@ class PictureBloc {
 
     if (event is PictureUploadEvent) {
       refresh(BlocUIState.Waiting);
-      String result = await pictureBlocState
+      await pictureBlocState
           .upLoad(index: event.picturFilesIndex)
           .then((value) {
         if (value == '') {
@@ -80,22 +110,7 @@ class PictureBloc {
       });
     }
 
-    if (event is PictureResizeEvent) {
-      refresh(BlocUIState.Waiting);
-      String result = await pictureBlocState
-          .resize(index: event.picturFilesIndex)
-          .then((value) {
-        if (value == '') {
-          refresh(BlocUIState.Fin);
-          displayMessage = 'Bild wurde geladen!!';
-        } else {
-          refresh(BlocUIState.Fail);
-          latestError = value;
-          displayMessage = 'Es ist ein fehler aufgetreten';
-        }
-        return value;
-      });
-    }
+
 
     if (event is PictureDownLoadEvent) {
       refresh(BlocUIState.Waiting);
@@ -137,6 +152,12 @@ class PictureBlocState {
     stateData = 1;
     return returnValue;
   }*/
+
+  Future<String> testFuture()async{
+    await Future.delayed(Duration(seconds: 2));
+    return 'fin';
+  }
+
 
   Future<String> selected({File picFile}) async {
     String returnValue = '';
@@ -268,7 +289,7 @@ enum BlocUIState { Waiting, Fin, Fail, NotDet }
 abstract class PictureEvent {}
 
 class TestEvent extends PictureEvent {}
-
+class TestEvent2 extends PictureEvent {}
 class PictureSelectEvent extends PictureEvent {
   File pictureFile;
   PictureSelectEvent({@required this.pictureFile});

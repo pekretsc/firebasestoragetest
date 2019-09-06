@@ -38,6 +38,7 @@ class _PicturePageState extends State<PicturePage> {
         stream: widget.pictureBloc.BlocResource,
         initialData: widget.pictureBloc.pictureBlocState,
         builder: (context, AsyncSnapshot<PictureBlocState> snap) {
+          print('redraw');
           Widget defaultImage = Center(
             child: Icon(
               Icons.cloud_upload,
@@ -164,6 +165,16 @@ class _PicturePageState extends State<PicturePage> {
                       child: RaisedButton(
                         onPressed: () {
                           widget.pictureBloc.BlocEventSinc.add(
+TestEvent2()
+                          );
+                        },
+                        child: Text('TestButton'),
+                      ),
+                    ),
+                    Center(
+                      child: RaisedButton(
+                        onPressed: () {
+                          widget.pictureBloc.BlocEventSinc.add(
                               PictureUploadEvent(
                                   picturFilesIndex:
                                       snap.data.rezisedPicFiles.length - 1));
@@ -175,9 +186,11 @@ class _PicturePageState extends State<PicturePage> {
                       child: RaisedButton(
                         onPressed: () {
                           widget.pictureBloc.BlocEventSinc.add(
+
                               PictureResizeEvent(
                                   picturFilesIndex:
-                                      snap.data.picFiles.length - 1));
+                                      snap.data.picFiles.length - 1)
+                          );
                         },
                         child: Text('Resize Image'),
                       ),
@@ -186,8 +199,10 @@ class _PicturePageState extends State<PicturePage> {
                       child: RaisedButton(
                         onPressed: () {
                           widget.pictureBloc.BlocEventSinc.add(
+
                               PictureDownLoadEvent(
-                                  path: snap.data.downloadPaths.last));
+                                  path: snap.data.downloadPaths.last)
+                          );
                         },
                         child: Text('Download Image'),
                       ),
