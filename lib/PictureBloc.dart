@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:async' as prefix0;
 import 'dart:io';
 import 'package:image/image.dart' as IMG;
 import 'package:flutter/cupertino.dart';
@@ -15,12 +14,12 @@ class PictureBloc {
   String latestError = '';
   String displayMessage = '';
 
-  final _StateController = BehaviorSubject<PictureBlocState>();
+  final StateController = BehaviorSubject<PictureBlocState>();
 
-  StreamSink<PictureBlocState> get _inBlockResource => _StateController.sink;
+  StreamSink<PictureBlocState> get _inBlockResource => StateController.sink;
 
   // For state, exposing only a stream which outputs data
-  Stream<PictureBlocState> get BlocResource => _StateController.stream;
+  Stream<PictureBlocState> get BlocResource => StateController.stream;
 
   final _EventController = StreamController<PictureEvent>();
 
@@ -29,7 +28,7 @@ class PictureBloc {
 
   PictureBloc() {
     _inBlockResource.add(pictureBlocState);
-
+    StateController.listen(eventcontroll);
     // Whenever there is a new event, we want to map it to a new state
     _EventController.stream.listen(_mapEventToState);
   }
@@ -40,31 +39,27 @@ class PictureBloc {
     print(pictureBlocState.state);
   }
 
+  void eventcontroll(PictureBlocState p) {
+    // print(p.state);
+  }
+
   void _mapEventToState(PictureEvent event) async {
     if (event is TestEvent) {
       refresh(BlocUIState.Waiting);
-      await Future.delayed(Duration(seconds: 2)).then((_){
+      await Future.delayed(Duration(seconds: 2)).then((_) {
         refresh(BlocUIState.Fin);
       });
-
     }
 
     if (event is TestEvent2) {
       refresh(BlocUIState.Waiting);
-      pictureBlocState.testFuture()
-          .then((value){
-            refresh(BlocUIState.Fin);
-            print(value);
-          });
-
+      await pictureBlocState.testFuture().then((_) {
+        refresh(BlocUIState.Fin);
+      });
     }
-
-
-    if (event is PictureResizeEvent) {
+    if (event is PictureSelectEvent) {
       refresh(BlocUIState.Waiting);
-      await pictureBlocState
-          .resize(index: event.picturFilesIndex)
-          .then((value) {
+      await pictureBlocState.selected(picFile: event.pictureFile).then((value) {
         if (value == '') {
           refresh(BlocUIState.Fin);
           displayMessage = 'Bild wurde geladen!!';
@@ -76,10 +71,11 @@ class PictureBloc {
         return value;
       });
     }
-    if (event is PictureSelectEvent) {
+
+    if (event is PictureResizeEvent) {
       refresh(BlocUIState.Waiting);
-      String result = await pictureBlocState
-          .selected(picFile: event.pictureFile)
+      await pictureBlocState
+          .resize(index: event.picturFilesIndex)
           .then((value) {
         if (value == '') {
           refresh(BlocUIState.Fin);
@@ -110,8 +106,6 @@ class PictureBloc {
       });
     }
 
-
-
     if (event is PictureDownLoadEvent) {
       refresh(BlocUIState.Waiting);
       String result =
@@ -130,7 +124,7 @@ class PictureBloc {
   }
 
   void dispose() {
-    _StateController.close();
+    StateController.close();
     _EventController.close();
   }
 }
@@ -153,11 +147,23 @@ class PictureBlocState {
     return returnValue;
   }*/
 
-  Future<String> testFuture()async{
-    await Future.delayed(Duration(seconds: 2));
-    return 'fin';
+  Future<String> testFuture() async {
+    String returnval = await resize(index: 0);
+    return returnval;
   }
 
+  String select({File picFile}) {
+    String returnValue = '';
+    try {
+      if (picFile.path.contains('.jpg') || picFile.path.contains('.png')) {
+        picFiles.add(picFile);
+      }
+    } catch (e) {
+      picFiles.add(null);
+      returnValue = e.toString();
+    }
+    return returnValue;
+  }
 
   Future<String> selected({File picFile}) async {
     String returnValue = '';
@@ -284,12 +290,19 @@ class PictureBlocState {
   }
 }
 
-enum BlocUIState { Waiting, Fin, Fail, NotDet }
+enum BlocUIState {
+  NotDet,
+  Waiting,
+  Fail,
+  Fin,
+}
 
 abstract class PictureEvent {}
 
 class TestEvent extends PictureEvent {}
+
 class TestEvent2 extends PictureEvent {}
+
 class PictureSelectEvent extends PictureEvent {
   File pictureFile;
   PictureSelectEvent({@required this.pictureFile});

@@ -35,7 +35,7 @@ class _PicturePageState extends State<PicturePage> {
         ),
       ),
       body: StreamBuilder(
-        stream: widget.pictureBloc.BlocResource,
+        stream: widget.pictureBloc.StateController,
         initialData: widget.pictureBloc.pictureBlocState,
         builder: (context, AsyncSnapshot<PictureBlocState> snap) {
           print('redraw');
@@ -164,9 +164,7 @@ class _PicturePageState extends State<PicturePage> {
                     Center(
                       child: RaisedButton(
                         onPressed: () {
-                          widget.pictureBloc.BlocEventSinc.add(
-TestEvent2()
-                          );
+                          widget.pictureBloc.BlocEventSinc.add(TestEvent2());
                         },
                         child: Text('TestButton'),
                       ),
@@ -186,11 +184,9 @@ TestEvent2()
                       child: RaisedButton(
                         onPressed: () {
                           widget.pictureBloc.BlocEventSinc.add(
-
                               PictureResizeEvent(
                                   picturFilesIndex:
-                                      snap.data.picFiles.length - 1)
-                          );
+                                      snap.data.picFiles.length - 1));
                         },
                         child: Text('Resize Image'),
                       ),
@@ -199,10 +195,8 @@ TestEvent2()
                       child: RaisedButton(
                         onPressed: () {
                           widget.pictureBloc.BlocEventSinc.add(
-
                               PictureDownLoadEvent(
-                                  path: snap.data.downloadPaths.last)
-                          );
+                                  path: snap.data.downloadPaths.last));
                         },
                         child: Text('Download Image'),
                       ),
