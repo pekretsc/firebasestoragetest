@@ -34,7 +34,7 @@ class PictureBloc {
   void _mapEventToState(PictureBlocEvent event) async {
     if (event is PictureSelectEvent) {
       refresh(PictureBlocUIState.Waiting);
-      await blocState.selected(picFile: event.pictureFile).then((value) {
+      await blocState.selected(pic: event.pictureFile).then((value) {
         if (value == '') {
           refresh(PictureBlocUIState.Fin);
           displayMessage = 'Bild wurde geladen!!';
@@ -66,7 +66,6 @@ class PictureBloc {
         refresh(PictureBlocUIState.Fail);
       }
     }
-
   }
 
   void dispose() {
@@ -78,7 +77,7 @@ class PictureBloc {
 class PictureBlocState {
   PictureBlocUIState state = PictureBlocUIState.NotDet;
   File picFile;
-  File rezisedPicFile;
+  File resizedPicFile;
   File downloadedPicFiles;
   String downloadPaths;
 
@@ -89,11 +88,10 @@ class PictureBlocState {
     return returnString;
   }
 
-
   Future<String> selected({File pic}) async {
     String returnValue = '';
     try {
-      if (picFile.path.contains('.jpg') || picFile.path.contains('.png')) {
+      if (pic.path.contains('.jpg') || pic.path.contains('.png')) {
         picFile = pic;
       }
     } catch (e) {
@@ -105,17 +103,13 @@ class PictureBlocState {
   Future<String> resize() async {
     String returnValue = '';
     try {
-      //Rezise Pic
-      //upload Pic to net
-      // return path
-
-    if(picFile != null){
-      File resizedPic = await getRezisedPicByFile(picFile);
-    }else{
-      returnValue = 'No pcture available! Please select a picture first';
-    }
-
-
+      if (picFile != null) {
+        File resizedPic = await getRezisedPicByFile(picFile).then((value) {
+          return value;
+        });
+      } else {
+        returnValue = 'No picture available! Please select a picture first';
+      }
     } catch (e) {
       returnValue = e.toString();
     }
@@ -127,9 +121,8 @@ class PictureBlocState {
       {IMG.Image picFile, String name, String extension}) async {
     Directory appDocDir = await Paths.getExternalStorageDirectory();
     File file =
-    new File(join('${appDocDir.path}/Pictures/', '$name$extension'));
+        new File(join('${appDocDir.path}/Pictures/', '$name$extension'));
     try {
-
       file.writeAsBytesSync(IMG.encodeJpg(picFile));
       return file;
     } catch (e) {
@@ -142,7 +135,7 @@ class PictureBlocState {
       {IMG.Image picFile, String name, String extension}) async {
     Directory appDocDir = await Paths.getExternalStorageDirectory();
     File file =
-    new File(join('${appDocDir.path}/Pictures/', '$name$extension'));
+        new File(join('${appDocDir.path}/Pictures/', '$name$extension'));
     try {
       file.writeAsBytesSync(IMG.encodeJpg(picFile));
       return file;
@@ -152,29 +145,35 @@ class PictureBlocState {
     }
   }
 
-  Future<File> getRezisedPicByFile(File pic,) async {
+  Future<File> getRezisedPicByFile(
+    File pic,
+  ) async {
     final IMG.Image image = IMG.decodeImage(pic.readAsBytesSync());
-    final IMG.Image  newJpg = await compute(rezisedPicFile,pic);
-    final File returnFile = File().writeAsBytesSync(IMG.encodeJpg(newJpg));
-    return returnFile;
+    final IMG.Image newJpg = await compute(resizedPicByFile, pic);
+    Directory appDocDir = await Paths.getExternalStorageDirectory();
+    File file = new File(join('${appDocDir.path}/Pictures/',
+        '${getSavableDateString(DateTime.now())}.jpg'));
+    file.writeAsBytesSync(IMG.encodeJpg(newJpg));
+    return file;
   }
+
   Future<IMG.Image> getRezisedPicByImage(IMG.Image pic) async {
-    final IMG.Image  newJpg = await compute(rezisedPicImage,pic);
+    final IMG.Image newJpg = await compute(resizedPicImage, pic);
     return newJpg;
   }
-  static IMG.Image rezisedPicImage(IMG.Image pic) {
+
+  static IMG.Image resizedPicImage(IMG.Image pic) {
     final IMG.Image resized = IMG.copyResize(pic,
         height: 700, interpolation: IMG.Interpolation.linear);
     return resized;
   }
-  static IMG.Image rezisedPicFile(File pic) {
-     final IMG.Image image = IMG.decodeImage(pic.readAsBytesSync());
-     final IMG.Image resized = IMG.copyResize(image,
-         height: 700, interpolation: IMG.Interpolation.linear);
-     return resized;
+
+  static IMG.Image resizedPicByFile(File pic) {
+    final IMG.Image image = IMG.decodeImage(pic.readAsBytesSync());
+    final IMG.Image resized = IMG.copyResize(image,
+        height: 700, interpolation: IMG.Interpolation.linear);
+    return resized;
   }
-
-
 }
 
 enum PictureBlocUIState {
@@ -187,7 +186,6 @@ enum PictureBlocUIState {
 abstract class PictureBlocEvent {}
 
 class AddEvent extends PictureBlocEvent {}
-
 
 class PictureSelectEvent extends PictureBlocEvent {
   File pictureFile;

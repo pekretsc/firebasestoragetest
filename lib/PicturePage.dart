@@ -35,8 +35,8 @@ class _PicturePageState extends State<PicturePage> {
         ),
       ),
       body: StreamBuilder(
-        stream: widget.pictureBloc.StateController,
-        initialData: widget.pictureBloc.pictureBlocState,
+        stream: widget.pictureBloc.StateStream,
+        initialData: widget.pictureBloc.blocState,
         builder: (context, AsyncSnapshot<PictureBlocState> snap) {
           print('redraw');
           Widget defaultImage = Center(
@@ -68,7 +68,7 @@ class _PicturePageState extends State<PicturePage> {
           );
 
           switch (snap.data.state) {
-            case BlocUIState.NotDet:
+            case PictureBlocUIState.NotDet:
               {
                 // statements;
                 download = defaultImage;
@@ -77,7 +77,7 @@ class _PicturePageState extends State<PicturePage> {
               }
               break;
 
-            case BlocUIState.Waiting:
+            case PictureBlocUIState.Waiting:
               {
                 //statements;
                 download = Center(
@@ -102,7 +102,7 @@ class _PicturePageState extends State<PicturePage> {
                 );
               }
               break;
-            case BlocUIState.Fail:
+            case PictureBlocUIState.Fail:
               {
                 download = Center(
                   child: Icon(Icons.error, color: Colors.white),
@@ -115,20 +115,13 @@ class _PicturePageState extends State<PicturePage> {
                 );
               }
               break;
-            case BlocUIState.Fin:
+            case PictureBlocUIState.Fin:
               {
-                if (snap.data.getLastFoundFile() != null) {
-                  defaultImage = Image.file(snap.data.getLastFoundFile());
+                if (snap.data.picFile != null) {
+                  defaultImage = Image.file(snap.data.picFile);
                 }
-
-                if (snap.data.getLastResizeFile() != null) {
-                  rezised = Image.file(snap.data.rezisedPicFiles.last);
-                }
-                if (snap.data.getLastResizeFile() != null) {
-                  upload = Image.file(snap.data.getLastResizeFile());
-                }
-                if (snap.data.downloadedPicFiles.isNotEmpty) {
-                  download = Image.file(snap.data.downloadedPicFiles.last);
+                if (snap.data.resizedPicFile != null) {
+                  defaultImage = Image.file(snap.data.resizedPicFile);
                 }
               }
               break;
@@ -143,6 +136,10 @@ class _PicturePageState extends State<PicturePage> {
               Expanded(
                 child: ListView(
                   children: <Widget>[
+                    Text(
+                      snap.data.state.toString(),
+                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    ),
                     PictureUpload(
                         radius: BorderRadius.all(Radius.circular(15)),
                         width: double.infinity,
@@ -151,7 +148,7 @@ class _PicturePageState extends State<PicturePage> {
                         onTab: () async {
                           File picture = await IMG.ImagePicker.pickImage(
                               source: IMG.ImageSource.gallery);
-                          widget.pictureBloc.BlocEventSinc
+                          widget.pictureBloc.EventSink
                               .add(PictureSelectEvent(pictureFile: picture));
                         },
                         decoration: BoxDecoration(
@@ -164,40 +161,21 @@ class _PicturePageState extends State<PicturePage> {
                     Center(
                       child: RaisedButton(
                         onPressed: () {
-                          widget.pictureBloc.BlocEventSinc.add(TestEvent2());
-                        },
-                        child: Text('TestButton'),
-                      ),
-                    ),
-                    Center(
-                      child: RaisedButton(
-                        onPressed: () {
-                          widget.pictureBloc.BlocEventSinc.add(
-                              PictureUploadEvent(
-                                  picturFilesIndex:
-                                      snap.data.rezisedPicFiles.length - 1));
-                        },
-                        child: Text('Upload Image'),
-                      ),
-                    ),
-                    Center(
-                      child: RaisedButton(
-                        onPressed: () {
-                          widget.pictureBloc.BlocEventSinc.add(
-                              PictureResizeEvent(
-                                  picturFilesIndex:
-                                      snap.data.picFiles.length - 1));
+                          widget.pictureBloc.EventSink
+                              .add(PictureResizeEvent());
                         },
                         child: Text('Resize Image'),
                       ),
                     ),
                     Center(
                       child: RaisedButton(
-                        onPressed: () {
-                          widget.pictureBloc.BlocEventSinc.add(
-                              PictureDownLoadEvent(
-                                  path: snap.data.downloadPaths.last));
-                        },
+                        onPressed: () {},
+                        child: Text('Upload Image'),
+                      ),
+                    ),
+                    Center(
+                      child: RaisedButton(
+                        onPressed: () {},
                         child: Text('Download Image'),
                       ),
                     ),
