@@ -50,7 +50,7 @@ class _PicturePage2State extends State<PicturePage2> {
                 RaisedButton(
                   child: Text(snap.data.stateData.toString()),
                   onPressed: () {
-                    widget.pictureBloc.BlocEventSinc.add(SomeEvent());
+                    widget.pictureBloc.BlocEventSink.add(SomeEvent());
                   },
                 )
               ],
@@ -69,7 +69,7 @@ class _PicturePage2State extends State<PicturePage2> {
                 RaisedButton(
                   child: Text(snap.data.stateData.toString()),
                   onPressed: () {
-                    widget.pictureBloc.BlocEventSinc.add(SomeEvent());
+                    widget.pictureBloc.BlocEventSink.add(SomeEvent());
                   },
                 )
               ],
@@ -88,7 +88,7 @@ class _PicturePage2State extends State<PicturePage2> {
                 RaisedButton(
                   child: Text(snap.data.stateData.toString()),
                   onPressed: () {
-                    widget.pictureBloc.BlocEventSinc.add(SomeEvent());
+                    widget.pictureBloc.BlocEventSink.add(SomeEvent());
                   },
                 )
               ],
@@ -108,7 +108,7 @@ class _PicturePage2State extends State<PicturePage2> {
                 RaisedButton(
                   child: Text(snap.data.stateData.toString()),
                   onPressed: () async {
-                    widget.pictureBloc.BlocEventSinc.add(SomeEvent());
+                    widget.pictureBloc.BlocEventSink.add(SomeEvent());
                   },
                 )
               ],
