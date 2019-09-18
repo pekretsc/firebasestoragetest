@@ -5,6 +5,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:path/path.dart';
 import 'package:image/image.dart' as IMG;
 import 'package:path_provider/path_provider.dart' as Paths;
+import 'package:firebase_storage/firebase_storage.dart';
 
 class PictureBloc {
   PictureBlocState blocState = PictureBlocState();
@@ -173,6 +174,29 @@ class PictureBlocState {
     final IMG.Image resized = IMG.copyResize(image,
         height: 700, interpolation: IMG.Interpolation.linear);
     return resized;
+  }
+
+  Future<String> uploadImg(
+      {File file, String reference, String filename, String extention}) async {
+    try{
+      final StorageReference storageReference =
+      FirebaseStorage().ref().child('$reference/$filename$extention');
+
+      final StorageUploadTask uploadTask = storageReference.putFile(file);
+      return storageReference.path;
+    }
+    catch(e){}
+
+  }
+
+  Future<File> downloadFile({String path}) async {
+    String shortPath = path;
+    StorageReference storageRef = FirebaseStorage().ref().child(shortPath);
+    Directory appDocDir = await Paths.getExternalStorageDirectory();
+    File tempImg = File(join('${appDocDir.path}', shortPath));
+
+    storageRef.writeToFile(tempImg);
+    return tempImg;
   }
 }
 
