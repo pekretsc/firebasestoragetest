@@ -178,15 +178,13 @@ class PictureBlocState {
 
   Future<String> uploadImg(
       {File file, String reference, String filename, String extention}) async {
-    try{
+    try {
       final StorageReference storageReference =
-      FirebaseStorage().ref().child('$reference/$filename$extention');
+          FirebaseStorage().ref().child('$reference/$filename$extention');
 
       final StorageUploadTask uploadTask = storageReference.putFile(file);
       return storageReference.path;
-    }
-    catch(e){}
-
+    } catch (e) {}
   }
 
   Future<File> downloadFile({String path}) async {
