@@ -225,3 +225,8 @@ class PictureDownLoadEvent extends PictureBlocEvent {
   String path;
   PictureDownLoadEvent({@required this.path});
 }
+
+class PictureDownloadEvent extends PictureBlocEvent {
+  String path;
+  PictureDownloadEvent({@required this.path});
+}
