@@ -55,31 +55,36 @@ class PictureBloc {
       String result;
       try {
         result = await blocState.resize().then((value) {
-          if (value != null) {
-            return '';
+          if (value == '') {
+            refresh(PictureBlocUIState.Fin);
+            displayMessage = 'Bild wurde geladen!!';
+            return value;
           } else {
-            return 'fail';
+            refresh(PictureBlocUIState.Fail);
+            latestError = value;
+            displayMessage = 'Es ist ein fehler aufgetreten';
+            return value;
           }
         });
       } catch (e) {}
-
-      if (result == '') {
-        refresh(PictureBlocUIState.Fin);
-      } else {
-        refresh(PictureBlocUIState.Fail);
-      }
     }
 
     if (event is PictureUploadEvent) {
       refresh(PictureBlocUIState.Waiting);
       String result;
       try {
-        result = await blocState.doUpload(reference: 'Pictures');
-        if (result == '') {
-          refresh(PictureBlocUIState.Fin);
-        } else {
-          refresh(PictureBlocUIState.Fail);
-        }
+        result = await blocState.doUpload(reference: 'Pictures').then((value) {
+          if (value == '') {
+            refresh(PictureBlocUIState.Fin);
+            displayMessage = 'Bild wurde geladen!!';
+            return value;
+          } else {
+            refresh(PictureBlocUIState.Fail);
+            latestError = value;
+            displayMessage = 'Es ist ein fehler aufgetreten';
+            return value;
+          }
+        });
       } catch (e) {
         print('upload ${e.toString()}');
       }
@@ -89,12 +94,18 @@ class PictureBloc {
       refresh(PictureBlocUIState.Waiting);
       String result;
       try {
-        result = await blocState.doDownloadFile(path: event.path);
-        if (result == '') {
-          refresh(PictureBlocUIState.Fin);
-        } else {
-          refresh(PictureBlocUIState.Fail);
-        }
+        result = await blocState.doDownloadFile(path: event.path).then((value) {
+          if (value == '') {
+            refresh(PictureBlocUIState.Fin);
+            displayMessage = 'Bild wurde geladen!!';
+            return value;
+          } else {
+            refresh(PictureBlocUIState.Fail);
+            latestError = value;
+            displayMessage = 'Es ist ein fehler aufgetreten';
+            return value;
+          }
+        });
       } catch (e) {
         print('download ${e.toString()}');
       }
@@ -258,6 +269,12 @@ class PictureBlocState {
   Future<String> uploadImg({File file, StorageReference reference}) async {
     try {
       final StorageUploadTask uploadTask = reference.putFile(file);
+
+      await uploadTask.onComplete.then((value) {
+        if (uploadTask.isComplete != true) {
+          throw new Exception(', please check your connection');
+        }
+      }).timeout(Duration(seconds: 7));
       return '';
     } catch (e) {
       return 'Upload Failed ${e.toString()}';
@@ -272,15 +289,20 @@ class PictureBlocState {
       } else {
         shortPath = path;
       }
-      StorageReference storageRef = FirebaseStorage().ref().child(shortPath);
-      Directory appDocDir = await Paths.getExternalStorageDirectory();
-      File tempFile = File(join('${appDocDir.path}', shortPath));
-      storageRef.writeToFile(tempFile);
-      downloadedPicFile = tempFile;
+      await download(shortPath: shortPath).timeout(Duration(seconds: 7));
       return '';
     } catch (e) {
       return 'Download Failed ${e.toString()}';
     }
+  }
+
+  Future<void> download({String shortPath}) async {
+    StorageReference storageRef = FirebaseStorage().ref().child(shortPath);
+    Directory appDocDir = await Paths.getExternalStorageDirectory();
+    File tempFile = File(join('${appDocDir.path}', shortPath));
+    final StorageFileDownloadTask downloadTask =
+        storageRef.writeToFile(tempFile);
+    await downloadTask.future.then((FileDownloadTaskSnapshot snap) {});
   }
 }
 

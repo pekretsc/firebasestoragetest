@@ -121,7 +121,10 @@ class _PicturePageState extends State<PicturePage> {
                   defaultImage = Image.file(snap.data.picFile);
                 }
                 if (snap.data.resizedPicFile != null) {
-                  upload = Icon(Icons.thumb_up,color: Colors.white,);
+                  upload = Icon(
+                    Icons.thumb_up,
+                    color: Colors.white,
+                  );
                 }
                 if (snap.data.downloadedPicFile != null) {
                   download = Image.file(snap.data.downloadedPicFile);
@@ -141,6 +144,10 @@ class _PicturePageState extends State<PicturePage> {
                   children: <Widget>[
                     Text(
                       snap.data.state.toString(),
+                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    ),
+                    Text(
+                      widget.pictureBloc.displayMessage,
                       style: TextStyle(color: Colors.white, fontSize: 20),
                     ),
                     PictureUpload(
@@ -182,8 +189,8 @@ class _PicturePageState extends State<PicturePage> {
                     Center(
                       child: RaisedButton(
                         onPressed: () {
-                          widget.pictureBloc.EventSink
-                              .add(PictureDownLoadEvent(path: snap.data.dbReference));
+                          widget.pictureBloc.EventSink.add(PictureDownLoadEvent(
+                              path: snap.data.dbReference));
                         },
                         child: Text('Download Image'),
                       ),
