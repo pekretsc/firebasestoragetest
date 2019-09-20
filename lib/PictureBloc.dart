@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -9,7 +8,7 @@ import 'package:path_provider/path_provider.dart' as Paths;
 import 'package:firebase_storage/firebase_storage.dart';
 
 class PictureBloc {
-  PictureBlocState blocState ;
+  PictureBlocState blocState;
   String latestError = '';
   String displayMessage = '';
   String dbReferece;
@@ -25,7 +24,7 @@ class PictureBloc {
   Sink<PictureBlocEvent> get EventSink => _EventController.sink;
 
   PictureBloc({this.dbReferece}) {
-    blocState  =  PictureBlocState(dbReference: this.dbReferece);
+    blocState = PictureBlocState(dbReference: this.dbReferece);
     _stateSink.add(blocState);
     _EventController.stream.listen(_mapEventToState);
   }
@@ -71,38 +70,35 @@ class PictureBloc {
       }
     }
 
-    if(event is PictureUploadEvent){
+    if (event is PictureUploadEvent) {
       refresh(PictureBlocUIState.Waiting);
       String result;
-      try{
+      try {
         result = await blocState.doUpload(reference: 'Pictures');
         if (result == '') {
           refresh(PictureBlocUIState.Fin);
         } else {
           refresh(PictureBlocUIState.Fail);
         }
-      }catch(e)
-      {
+      } catch (e) {
         print('upload ${e.toString()}');
       }
     }
 
-    if(event is PictureDownLoadEvent){
+    if (event is PictureDownLoadEvent) {
       refresh(PictureBlocUIState.Waiting);
       String result;
-      try{
+      try {
         result = await blocState.doDownloadFile(path: event.path);
         if (result == '') {
           refresh(PictureBlocUIState.Fin);
         } else {
           refresh(PictureBlocUIState.Fail);
         }
-      }catch(e)
-      {
+      } catch (e) {
         print('download ${e.toString()}');
       }
     }
-
   }
 
   void dispose() {
@@ -214,48 +210,52 @@ class PictureBlocState {
     return resized;
   }
 
-  String generateFileName(){
+  String generateFileName() {
     String timeStamp = getSavableDateString(DateTime.now());
     String owner = getOwner();
     return '$owner$timeStamp';
   }
 
-  String getOwner(){
+  String getOwner() {
     return 'Owner';
   }
 
-  Future<String> doUpload({String reference,}) async{
+  Future<String> doUpload({
+    String reference,
+  }) async {
     String returnString = '';
-    try{
-      if(this.picFile == null){
+    try {
+      if (this.picFile == null) {
         //selected?
         String returnString = 'Please select a picture first!';
         return returnString;
-      }else{
+      } else {
         //resize
-        File file = await getRezisedPicByFile(this.picFile).then((File value)async{
+        File file =
+            await getRezisedPicByFile(this.picFile).then((File value) async {
           //create name
           String filename = generateFileName();
           //create path
           String path = '$reference/$filename.jpg';
           final StorageReference storageReference =
-          FirebaseStorage().ref().child(path);
-          returnString = await uploadImg(file:value ,reference:storageReference ).then((answer){
+              FirebaseStorage().ref().child(path);
+          returnString =
+              await uploadImg(file: value, reference: storageReference)
+                  .then((answer) {
             this.dbReference = path;
             //Update DB Here
             return answer;
           });
-        return value;
+          return value;
         });
         return returnString;
       }
-    }catch(e){
+    } catch (e) {
       return returnString;
     }
   }
 
-  Future<String> uploadImg(
-      {File file, StorageReference reference}) async {
+  Future<String> uploadImg({File file, StorageReference reference}) async {
     try {
       final StorageUploadTask uploadTask = reference.putFile(file);
       return '';
@@ -264,26 +264,23 @@ class PictureBlocState {
     }
   }
 
-
-
   Future<String> doDownloadFile({String path}) async {
     String shortPath;
-    try{
-      if(path == null){
+    try {
+      if (path == null) {
         shortPath = this.dbReference;
-      }else{
+      } else {
         shortPath = path;
       }
       StorageReference storageRef = FirebaseStorage().ref().child(shortPath);
       Directory appDocDir = await Paths.getExternalStorageDirectory();
-      this.downloadedPicFile = File(join('${appDocDir.path}', shortPath));
-      storageRef.writeToFile(downloadedPicFile);
+      File tempFile = File(join('${appDocDir.path}', shortPath));
+      storageRef.writeToFile(tempFile);
+      downloadedPicFile = tempFile;
       return '';
-    }
-    catch(e){
+    } catch (e) {
       return 'Download Failed ${e.toString()}';
     }
-
   }
 }
 
@@ -302,13 +299,12 @@ class PictureSelectEvent extends PictureBlocEvent {
   File pictureFile;
   PictureSelectEvent({@required this.pictureFile});
 }
+
 class PictureResizeEvent extends PictureBlocEvent {}
 
-class PictureUploadEvent extends PictureBlocEvent {
-}
+class PictureUploadEvent extends PictureBlocEvent {}
+
 class PictureDownLoadEvent extends PictureBlocEvent {
   String path;
   PictureDownLoadEvent({@required this.path});
 }
-
-
