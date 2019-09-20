@@ -121,7 +121,10 @@ class _PicturePageState extends State<PicturePage> {
                   defaultImage = Image.file(snap.data.picFile);
                 }
                 if (snap.data.resizedPicFile != null) {
-                  defaultImage = Image.file(snap.data.resizedPicFile);
+                  upload = Icon(Icons.thumb_up,color: Colors.white,);
+                }
+                if (snap.data.downloadedPicFile != null) {
+                  download = Image.file(snap.data.downloadedPicFile);
                 }
               }
               break;
@@ -169,13 +172,19 @@ class _PicturePageState extends State<PicturePage> {
                     ),
                     Center(
                       child: RaisedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          widget.pictureBloc.EventSink
+                              .add(PictureUploadEvent());
+                        },
                         child: Text('Upload Image'),
                       ),
                     ),
                     Center(
                       child: RaisedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          widget.pictureBloc.EventSink
+                              .add(PictureDownLoadEvent(path: snap.data.dbReference));
+                        },
                         child: Text('Download Image'),
                       ),
                     ),
