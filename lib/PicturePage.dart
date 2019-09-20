@@ -6,7 +6,7 @@ import 'package:firebasestoragetest/PictureBloc.dart';
 import 'package:firebasestoragetest/PictureUploadWidget.dart';
 
 class PicturePage extends StatefulWidget {
-  PictureBloc pictureBloc = PictureBloc();
+  PictureBloc pictureBloc = PictureBloc(fireStoreReferenceFolder: 'Pictures');
   @override
   _PicturePageState createState() => _PicturePageState();
 }
@@ -158,8 +158,9 @@ class _PicturePageState extends State<PicturePage> {
                         onTab: () async {
                           File picture = await IMG.ImagePicker.pickImage(
                               source: IMG.ImageSource.gallery);
-                          widget.pictureBloc.EventSink
-                              .add(PictureSelectEvent(pictureFile: picture));
+                          widget.pictureBloc.EventSink.add(
+                              PictureSelectWithUploadEvent(
+                                  pictureFile: picture));
                         },
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(15),

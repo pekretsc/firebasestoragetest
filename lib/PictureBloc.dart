@@ -11,7 +11,10 @@ class PictureBloc {
   PictureBlocState blocState;
   String latestError = '';
   String displayMessage = '';
-  String dbReferece;
+  String dbReference;
+  String noConnectionError;
+  String selectionError;
+  String fireStoreReferenceFolder;
 
   final _StateController = BehaviorSubject<PictureBlocState>();
 
@@ -23,8 +26,20 @@ class PictureBloc {
 
   Sink<PictureBlocEvent> get EventSink => _EventController.sink;
 
-  PictureBloc({this.dbReferece}) {
-    blocState = PictureBlocState(dbReference: this.dbReferece);
+  PictureBloc(
+      {this.dbReference,
+      this.noConnectionError,
+      this.selectionError,
+      @required this.fireStoreReferenceFolder}) {
+    if (noConnectionError == null) {
+      noConnectionError =
+          'Something whent wrong! \n Please check your Connection';
+    }
+    if (selectionError == null) {
+      selectionError =
+          'This picture could not be selected \n Check if it is JPG';
+    }
+    blocState = PictureBlocState(dbReference: this.dbReference);
     _stateSink.add(blocState);
     _EventController.stream.listen(_mapEventToState);
   }
@@ -35,16 +50,17 @@ class PictureBloc {
   }
 
   void _mapEventToState(PictureBlocEvent event) async {
+    this.latestError = '';
+    this.displayMessage = '';
     if (event is PictureSelectEvent) {
       refresh(PictureBlocUIState.Waiting);
       await blocState.selected(pic: event.pictureFile).then((value) {
         if (value == '') {
           refresh(PictureBlocUIState.Fin);
-          displayMessage = 'Bild wurde geladen!!';
         } else {
           refresh(PictureBlocUIState.Fail);
           latestError = value;
-          displayMessage = 'Es ist ein fehler aufgetreten';
+          displayMessage = selectionError;
         }
         return value;
       });
@@ -73,7 +89,9 @@ class PictureBloc {
       refresh(PictureBlocUIState.Waiting);
       String result;
       try {
-        result = await blocState.doUpload(reference: 'Pictures').then((value) {
+        result = await blocState
+            .doUpload(reference: fireStoreReferenceFolder)
+            .then((value) {
           if (value == '') {
             refresh(PictureBlocUIState.Fin);
             displayMessage = 'Bild wurde geladen!!';
@@ -81,7 +99,7 @@ class PictureBloc {
           } else {
             refresh(PictureBlocUIState.Fail);
             latestError = value;
-            displayMessage = 'Es ist ein fehler aufgetreten';
+            displayMessage = noConnectionError;
             return value;
           }
         });
@@ -102,10 +120,46 @@ class PictureBloc {
           } else {
             refresh(PictureBlocUIState.Fail);
             latestError = value;
-            displayMessage = 'Es ist ein fehler aufgetreten';
+            displayMessage = noConnectionError;
             return value;
           }
         });
+      } catch (e) {
+        print('download ${e.toString()}');
+      }
+    }
+    if (event is PictureSelectWithUploadEvent) {
+      refresh(PictureBlocUIState.Waiting);
+      String result;
+      try {
+        result = await blocState
+            .selected(pic: event.pictureFile)
+            .then((value) async {
+          if (value == '') {
+            value = await blocState
+                .doUpload(reference: fireStoreReferenceFolder)
+                .then((iValue) {
+              if (value == '') {
+                displayMessage = 'Bild wurde geladen!!';
+                return value;
+              } else {
+                latestError = value;
+                displayMessage = noConnectionError;
+                return value;
+              }
+            });
+            return value;
+          } else {
+            latestError = value;
+            displayMessage = noConnectionError;
+            return value;
+          }
+        });
+        if (result == '') {
+          refresh(PictureBlocUIState.Fin);
+        } else {
+          refresh(PictureBlocUIState.Fail);
+        }
       } catch (e) {
         print('download ${e.toString()}');
       }
@@ -320,6 +374,11 @@ class AddEvent extends PictureBlocEvent {}
 class PictureSelectEvent extends PictureBlocEvent {
   File pictureFile;
   PictureSelectEvent({@required this.pictureFile});
+}
+
+class PictureSelectWithUploadEvent extends PictureBlocEvent {
+  File pictureFile;
+  PictureSelectWithUploadEvent({@required this.pictureFile});
 }
 
 class PictureResizeEvent extends PictureBlocEvent {}
