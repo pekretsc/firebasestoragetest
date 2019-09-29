@@ -1,4 +1,5 @@
 import 'package:firebasestoragetest/PicturePage.dart';
+import 'package:firebasestoragetest/SplashScreen.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
@@ -15,6 +16,6 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    return MaterialApp(home: SafeArea(child: PicturePage()));
+    return MaterialApp(home: SafeArea(child: SplashScreen()));
   }
 }
